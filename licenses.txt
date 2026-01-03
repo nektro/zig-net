@@ -1,0 +1,12 @@
+MPL-2.0:
+= https://spdx.org/licenses/MPL-2.0
+- This
+- git https://github.com/nektro/zig-nio
+
+MIT:
+= https://spdx.org/licenses/MIT
+- git https://github.com/nektro/zig-expect
+- git https://github.com/nektro/zig-sys-linux
+
+Unspecified:
+- system_lib c

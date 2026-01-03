@@ -1,0 +1,10 @@
+id: i7z1thgnbh8476j2ctiey56u05jkkpses3or88ukwe7k9x5e
+name: net
+main: net.zig
+license: MPL-2.0
+description: An alternative network layer
+dependencies:
+  - src: git https://github.com/nektro/zig-nio
+  - src: git https://github.com/nektro/zig-sys-linux
+root_dependencies:
+  - src: git https://github.com/nektro/zig-expect
