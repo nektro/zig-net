@@ -13,9 +13,14 @@ const sys = switch (os) {
 pub const Address = extern union {
     any: sys.struct_sockaddr,
     in: Ip4Address,
+    in6: Ip6Address,
 
     pub fn initIp4(addr: [4]u8, hport: u16) Address {
         return .{ .in = Ip4Address.init(addr, hport) };
+    }
+
+    pub fn initIp6(addr: [8]u16, hport: u16) Address {
+        return .{ .in6 = Ip6Address.init(addr, hport) };
     }
 
     pub fn size(adr: Address) sys.socklen_t {
@@ -30,6 +35,7 @@ pub const Address = extern union {
     pub fn port(adr: Address) u16 {
         return std.mem.bigToNative(u16, switch (adr.any.family) {
             .INET => adr.in.sa.port,
+            .INET6 => adr.in6.sa.port,
             else => unreachable,
         });
     }
@@ -86,6 +92,21 @@ pub const Ip4Address = extern struct {
             .sa = .{
                 .port = std.mem.nativeToBig(u16, port),
                 .addr = .{ .addr = @bitCast(addr) },
+            },
+        };
+    }
+};
+
+pub const Ip6Address = extern struct {
+    sa: sys.struct_sockaddr_in6,
+
+    pub fn init(addr: [8]u16, port: u16) Ip6Address {
+        return Ip6Address{
+            .sa = .{
+                .port = std.mem.nativeToBig(u16, port),
+                .addr = .{ .addr = @bitCast(addr) },
+                .flowinfo = 0,
+                .scope_id = 0,
             },
         };
     }
