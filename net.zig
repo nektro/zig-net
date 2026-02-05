@@ -87,6 +87,8 @@ pub const Address = extern union {
 pub const Ip4Address = extern struct {
     sa: sys.struct_sockaddr_in,
 
+    pub const SockAddr = sys.struct_sockaddr_in;
+
     pub fn init(addr: [4]u8, port: u16) Ip4Address {
         return Ip4Address{
             .sa = .{
@@ -99,6 +101,8 @@ pub const Ip4Address = extern struct {
 
 pub const Ip6Address = extern struct {
     sa: sys.struct_sockaddr_in6,
+
+    pub const SockAddr = sys.struct_sockaddr_in6;
 
     pub fn init(addr: [8]u16, port: u16) Ip6Address {
         return Ip6Address{
@@ -197,3 +201,7 @@ pub const Server = struct {
         }
     };
 };
+
+pub const getaddrinfo = sys.getaddrinfo;
+
+pub const freeaddrinfo = sys.freeaddrinfo;
