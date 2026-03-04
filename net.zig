@@ -129,6 +129,10 @@ pub const Stream = struct {
         sys.close(@intCast(@intFromEnum(s.socket))) catch {};
     }
 
+    pub fn shutdown(s: Stream, how: sys.SHUT) !void {
+        return sys.shutdown(@intCast(@intFromEnum(s.socket)), how);
+    }
+
     pub const ReadError = switch (builtin.target.os.tag) {
         .linux => sys.errno.Error,
         else => @compileError("TODO"),
