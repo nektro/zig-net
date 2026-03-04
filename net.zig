@@ -1,6 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const nio = @import("nio");
+const nfs = @import("nfs");
 const sys_linux = @import("sys-linux");
 
 const os = builtin.target.os.tag;
@@ -9,6 +10,8 @@ const sys = switch (os) {
     .linux => sys_linux,
     else => @compileError("TODO"),
 };
+
+pub const off_t = sys.off_t;
 
 pub const Address = extern union {
     any: sys.struct_sockaddr,
@@ -131,6 +134,16 @@ pub const Stream = struct {
 
     pub fn shutdown(s: Stream, how: sys.SHUT) !void {
         return sys.shutdown(@intCast(@intFromEnum(s.socket)), how);
+    }
+
+    pub fn sendfile(s: Stream, file: nfs.File, offset: off_t, count: ?usize) !void {
+        const count_actual = count orelse (try file.stat()).size;
+        var total: u63 = 0;
+        while (total < count_actual) {
+            const len = try sys.sendfile(@intCast(@intFromEnum(s.socket)), @intFromEnum(file.fd), &(offset + total), count_actual - total);
+            total += @intCast(len);
+            if (len == 0) break;
+        }
     }
 
     pub const ReadError = switch (builtin.target.os.tag) {

@@ -6,5 +6,6 @@ description: An alternative network layer
 dependencies:
   - src: git https://github.com/nektro/zig-nio
   - src: git https://github.com/nektro/zig-sys-linux
+  - src: git https://github.com/nektro/zig-nfs
 root_dependencies:
   - src: git https://github.com/nektro/zig-expect
