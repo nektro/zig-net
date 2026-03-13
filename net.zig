@@ -2,6 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const nio = @import("nio");
 const nfs = @import("nfs");
+const time = @import("time");
 const sys_linux = @import("sys-linux");
 
 const os = builtin.target.os.tag;
@@ -187,6 +188,22 @@ pub const Stream = struct {
             .vtable = &.{ .write = S.write },
             .state = @ptrFromInt(@intFromEnum(s.socket)),
         };
+    }
+
+    pub fn setSendTimeout(s: Stream, timeout_us: u31) !void {
+        const timeval: sys.struct_timeval = .{
+            .sec = timeout_us / time.us_per_s,
+            .usec = timeout_us % time.us_per_s,
+        };
+        return sys.setsockopt(@intCast(@intFromEnum(s.socket)), sys.SOL.SOCKET, sys.SO.SNDTIMEO, @ptrCast((&timeval)[0..1]));
+    }
+
+    pub fn setRecvTimeout(s: Stream, timeout_us: u31) !void {
+        const timeval: sys.struct_timeval = .{
+            .sec = timeout_us / time.us_per_s,
+            .usec = timeout_us % time.us_per_s,
+        };
+        return sys.setsockopt(@intCast(@intFromEnum(s.socket)), sys.SOL.SOCKET, sys.SO.RCVTIMEO, @ptrCast((&timeval)[0..1]));
     }
 };
 
