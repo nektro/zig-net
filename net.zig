@@ -3,6 +3,7 @@ const builtin = @import("builtin");
 const nio = @import("nio");
 const nfs = @import("nfs");
 const time = @import("time");
+const url = @import("url");
 const sys_linux = @import("sys-linux");
 
 const os = builtin.target.os.tag;
@@ -25,6 +26,27 @@ pub const Address = extern union {
 
     pub fn initIp6(addr: [8]u16, hport: u16) Address {
         return .{ .in6 = Ip6Address.init(addr, hport) };
+    }
+
+    pub fn fromUrl(u: *const url.URL, allocator: std.mem.Allocator) !Address {
+        return switch (u.hostFancy()) {
+            .unset => unreachable,
+            .ipv4 => |int| .initIp4(@bitCast(int), u.portFancy().?),
+            .ipv6 => |int| .initIp6(@bitCast(int), u.portFancy().?),
+            .name => |hostname| blk: {
+                const hostnamez = try allocator.dupeZ(u8, hostname);
+                defer allocator.free(hostnamez);
+                const portz = try std.fmt.allocPrintZ(allocator, "{d}", .{u.portFancy().?});
+                defer allocator.free(portz);
+                const gai = try getaddrinfo(hostnamez, portz, null);
+                defer freeaddrinfo(gai);
+                break :blk switch (gai.addr.?.family) {
+                    .INET => .{ .in = .{ .sa = @as(*Ip4Address.SockAddr, @ptrCast(@alignCast(gai.addr.?))).* } },
+                    .INET6 => .{ .in6 = .{ .sa = @as(*Ip6Address.SockAddr, @ptrCast(@alignCast(gai.addr.?))).* } },
+                    else => @panic("TODO"),
+                };
+            },
+        };
     }
 
     pub fn size(adr: Address) sys.socklen_t {
