@@ -49,6 +49,14 @@ pub const Address = extern union {
         };
     }
 
+    pub fn format(adr: Address, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        switch (adr.any.family) {
+            .INET => try adr.in.format(fmt, options, writer),
+            .INET6 => try adr.in6.format(fmt, options, writer),
+            else => |a| try writer.print("{{any:{s}}}", .{@tagName(a)}),
+        }
+    }
+
     pub fn size(adr: Address) sys.socklen_t {
         return switch (adr.any.family) {
             .INET => @sizeOf(sys.struct_sockaddr_in),
@@ -123,6 +131,14 @@ pub const Ip4Address = extern struct {
             },
         };
     }
+
+    pub fn format(adr: Ip4Address, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = fmt;
+        _ = options;
+        const parts: [4]u8 = @bitCast(adr.sa.addr.addr);
+        const port = @byteSwap(adr.sa.port);
+        try writer.print("{d}.{d}.{d}.{d}:{d}", .{ parts[0], parts[1], parts[2], parts[3], port });
+    }
 };
 
 pub const Ip6Address = extern struct {
@@ -139,6 +155,13 @@ pub const Ip6Address = extern struct {
                 .scope_id = 0,
             },
         };
+    }
+
+    pub fn format(adr: Ip6Address, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = adr;
+        _ = fmt;
+        _ = options;
+        try writer.writeAll("{Ip6Address}");
     }
 };
 
