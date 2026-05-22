@@ -192,11 +192,25 @@ pub const Stream = struct {
         }
     }
 
+    const R = nio.Readable(@This(), ._bare);
+    pub const readAll = R.readAll;
+    pub const readAtLeast = R.readAtLeast;
+    pub const readNoEof = R.readNoEof;
+    pub const readAllAlloc = R.readAllAlloc;
+    pub const readArray = R.readArray;
+    pub const readByte = R.readByte;
+    pub const readUntilDelimiterArrayList = R.readUntilDelimiterArrayList;
+    pub const readUntilDelimiterAlloc = R.readUntilDelimiterAlloc;
+    pub const readUntilDelimitersBuf = R.readUntilDelimitersBuf;
+    pub const readUntilDelimitersArrayList = R.readUntilDelimitersArrayList;
+    pub const readAlloc = R.readAlloc;
+    pub const readInt = R.readInt;
+    pub const readUntilDelimitersAlloc = R.readUntilDelimitersAlloc;
+
     pub const ReadError = switch (builtin.target.os.tag) {
         .linux => sys.errno.Error,
         else => @compileError("TODO"),
     };
-    pub usingnamespace nio.Readable(@This(), ._bare);
     pub fn read(s: Stream, buffer: []u8) ReadError!usize {
         return sys.recv(@intFromEnum(s.socket), buffer, 0);
     }
@@ -213,11 +227,20 @@ pub const Stream = struct {
         };
     }
 
+    const W = nio.Writable(@This(), ._bare);
+    pub const writeAll = W.writeAll;
+    pub const writevAll = W.writevAll;
+    pub const writeByteNTimes = W.writeByteNTimes;
+    pub const writeNTimes = W.writeNTimes;
+    pub const writeInt = W.writeInt;
+    pub const writeStruct = W.writeStruct;
+    pub const writeIntPretty = W.writeIntPretty;
+    pub const print = W.print;
+
     pub const WriteError = switch (builtin.target.os.tag) {
         .linux => sys.errno.Error,
         else => @compileError("TODO"),
     };
-    pub usingnamespace nio.Writable(@This(), ._bare);
     pub fn write(s: Stream, bytes: []const u8) WriteError!usize {
         return sys.send(@intFromEnum(s.socket), bytes, 0);
     }
