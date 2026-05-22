@@ -36,7 +36,7 @@ pub const Address = extern union {
             .name => |hostname| blk: {
                 const hostnamez = try allocator.dupeZ(u8, hostname);
                 defer allocator.free(hostnamez);
-                const portz = try std.fmt.allocPrintZ(allocator, "{d}", .{u.portFancy().?});
+                const portz = try nio.fmt.allocPrintZ(allocator, "{d}", .{u.portFancy().?});
                 defer allocator.free(portz);
                 const gai = try getaddrinfo(hostnamez, portz, null);
                 defer freeaddrinfo(gai);
