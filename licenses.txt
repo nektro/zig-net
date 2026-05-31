@@ -10,6 +10,7 @@ MIT:
 = https://spdx.org/licenses/MIT
 - git https://github.com/nektro/zig-expect
 - git https://github.com/nektro/zig-extras
+- git https://github.com/nektro/zig-sys-darwin
 - git https://github.com/nektro/zig-sys-linux
 - git https://github.com/nektro/zig-time
 - git https://github.com/nektro/zig-unicode-ucd
