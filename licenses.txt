@@ -14,6 +14,3 @@ MIT:
 - git https://github.com/nektro/zig-sys-linux
 - git https://github.com/nektro/zig-time
 - git https://github.com/nektro/zig-unicode-ucd
-
-Unspecified:
-- system_lib c
