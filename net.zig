@@ -49,10 +49,10 @@ pub const Address = extern union {
         };
     }
 
-    pub fn format(adr: Address, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+    pub fn nprint(adr: Address, writer: anytype) !void {
         switch (adr.any.family) {
-            .INET => try adr.in.format(fmt, options, writer),
-            .INET6 => try adr.in6.format(fmt, options, writer),
+            .INET => try adr.in.nprint(writer),
+            .INET6 => try adr.in6.nprint(writer),
             else => |a| try writer.print("{{any:{s}}}", .{@tagName(a)}),
         }
     }
@@ -132,9 +132,7 @@ pub const Ip4Address = extern struct {
         };
     }
 
-    pub fn format(adr: Ip4Address, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-        _ = fmt;
-        _ = options;
+    pub fn nprint(adr: Ip4Address, writer: anytype) !void {
         const parts: [4]u8 = @bitCast(adr.sa.addr.addr);
         const port = @byteSwap(adr.sa.port);
         try writer.print("{d}.{d}.{d}.{d}:{d}", .{ parts[0], parts[1], parts[2], parts[3], port });
@@ -157,11 +155,10 @@ pub const Ip6Address = extern struct {
         };
     }
 
-    pub fn format(adr: Ip6Address, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-        _ = adr;
-        _ = fmt;
-        _ = options;
-        try writer.writeAll("{Ip6Address}");
+    pub fn nprint(adr: Ip6Address, writer: anytype) !void {
+        const parts: [8]u16 = @bitCast(adr.sa.addr.addr);
+        const port = @byteSwap(adr.sa.port);
+        try writer.print("{x}.{x}.{x}.{x}.{x}.{x}.{x}.{x}:{d}", .{ parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], port });
     }
 };
 
