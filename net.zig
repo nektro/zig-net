@@ -185,7 +185,6 @@ pub const Stream = struct {
         while (total < count_actual) {
             const len = try sys.sendfile(@intCast(@intFromEnum(s.socket)), @intFromEnum(file.fd), &(offset + total), count_actual - total);
             total += @intCast(len);
-            if (len == 0) break;
         }
     }
 
