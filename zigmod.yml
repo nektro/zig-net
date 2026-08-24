@@ -9,5 +9,8 @@ dependencies:
   - src: git https://github.com/nektro/zig-nfs
   - src: git https://github.com/nektro/zig-time
   - src: git https://github.com/nektro/zig-whatwg-url
+  - src: git https://github.com/nektro/zig-sys-freebsd
+  - src: git https://github.com/nektro/zig-sys-netbsd
+  - src: git https://github.com/nektro/zig-sys-openbsd
 root_dependencies:
   - src: git https://github.com/nektro/zig-expect

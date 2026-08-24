@@ -10,6 +10,9 @@ const os = builtin.target.os.tag;
 
 const sys = switch (os) {
     .linux => sys_linux,
+    .freebsd => @import("sys-freebsd"),
+    .netbsd => @import("sys-netbsd"),
+    .openbsd => @import("sys-openbsd"),
     else => @compileError("TODO"),
 };
 
@@ -164,6 +167,9 @@ pub const Ip6Address = extern struct {
 
 pub const Socket = switch (os) {
     .linux => enum(c_uint) { _ },
+    .freebsd => enum(c_uint) { _ },
+    .netbsd => enum(c_uint) { _ },
+    .openbsd => enum(c_uint) { _ },
     else => @compileError("TODO"),
 };
 
@@ -180,6 +186,21 @@ pub const Stream = struct {
     }
 
     pub fn sendfile(s: Stream, file: nfs.File, offset: off_t, count: ?usize) !void {
+        switch (os) {
+            .freebsd,
+            .netbsd,
+            .openbsd,
+            => {
+                const count_actual = count orelse (try file.stat()).size;
+                const region = try file.mmapRegion(offset, count_actual);
+                defer nfs.munmap(region);
+                try s.writeAll(region);
+                return;
+            },
+            .linux,
+            => {},
+            else => comptime unreachable,
+        }
         const count_actual = count orelse (try file.stat()).size;
         var total: u63 = 0;
         while (total < count_actual) {
@@ -204,10 +225,7 @@ pub const Stream = struct {
     pub const readInt = R.readInt;
     pub const readUntilDelimitersAlloc = R.readUntilDelimitersAlloc;
 
-    pub const ReadError = switch (builtin.target.os.tag) {
-        .linux => sys.errno.Error,
-        else => @compileError("TODO"),
-    };
+    pub const ReadError = sys.errno.Error;
     pub fn read(s: Stream, buffer: []u8) ReadError!usize {
         return sys.recv(@intFromEnum(s.socket), buffer, 0);
     }
@@ -234,10 +252,7 @@ pub const Stream = struct {
     pub const writeIntPretty = W.writeIntPretty;
     pub const print = W.print;
 
-    pub const WriteError = switch (builtin.target.os.tag) {
-        .linux => sys.errno.Error,
-        else => @compileError("TODO"),
-    };
+    pub const WriteError = sys.errno.Error;
     pub fn write(s: Stream, bytes: []const u8) WriteError!usize {
         return sys.send(@intFromEnum(s.socket), bytes, 0);
     }
