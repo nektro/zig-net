@@ -61,7 +61,7 @@ pub const Address = extern union {
         return switch (adr.any.family) {
             .INET => @sizeOf(sys.struct_sockaddr_in),
             .INET6 => @sizeOf(sys.struct_sockaddr_in6),
-            sys.AF.UNIX => @sizeOf(sys.struct_sockaddr_un),
+            .UNIX => @sizeOf(sys.struct_sockaddr_un),
             else => unreachable,
         };
     }
