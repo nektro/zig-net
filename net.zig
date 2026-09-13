@@ -178,7 +178,7 @@ pub const Stream = struct {
 
     // Resource allocation may fail; resource deallocation must succeed.
     pub fn close(s: Stream) void {
-        sys.close(@intCast(@intFromEnum(s.socket))) catch {};
+        sys.close(@intCast(@intFromEnum(s.socket))) catch if (builtin.mode == .Debug) unreachable;
     }
 
     pub fn shutdown(s: Stream, how: sys.SHUT) !void {
