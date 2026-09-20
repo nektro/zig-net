@@ -77,7 +77,11 @@ pub const Address = extern union {
         });
     }
 
-    pub fn listen(adr: Address, options: ListenOptions) !Server {
+    pub fn listen(adr_: Address, options: ListenOptions) !Server {
+        var adr = adr_;
+        if (options.dualstack_if_possible and adr_.any.family == .INET and adr_.in.sa.addr.addr == 0) {
+            adr = .{ .in6 = .init(@bitCast(@as([16]u8, @splat(0))), @byteSwap(adr_.in.sa.port)) };
+        }
         const sockfd = try sys.socket(
             adr.any.family,
             sys.SOCK.STREAM | sys.SOCK.CLOEXEC,
@@ -89,6 +93,9 @@ pub const Address = extern union {
         };
         errdefer s.stream.close();
 
+        if (options.dualstack_if_possible and adr_.any.family == .INET and adr_.in.sa.addr.addr == 0) {
+            try sys.setsockopt(sockfd, sys.IPPROTO.IPV6, sys.IPV6.V6ONLY, &std.mem.toBytes(@as(c_int, 0)));
+        }
         if (options.reuse_address) {
             try sys.setsockopt(sockfd, sys.SOL.SOCKET, sys.SO.REUSEADDR, &std.mem.toBytes(@as(c_int, 1)));
 
@@ -110,6 +117,8 @@ pub const Address = extern union {
         kernel_backlog: u31 = 511,
         /// Sets SO_REUSEADDR and SO_REUSEPORT.
         reuse_address: bool = false,
+        /// When listening on 0.0.0.0, listens on [::] instead and disables IPV6_V6ONLY.
+        dualstack_if_possible: bool = true,
     };
 
     pub fn tcpConnect(adr: Address) !Stream {
