@@ -161,7 +161,7 @@ pub const Ip6Address = extern struct {
     pub fn nprint(adr: Ip6Address, writer: anytype) !void {
         const parts: [8]u16 = @bitCast(adr.sa.addr.addr);
         const port = @byteSwap(adr.sa.port);
-        try writer.print("{x}.{x}.{x}.{x}.{x}.{x}.{x}.{x}:{d}", .{ parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], port });
+        try writer.print("[{x:0>4}:{x:0>4}:{x:0>4}:{x:0>4}:{x:0>4}:{x:0>4}:{x:0>4}:{x:0>4}]:{d}", .{ parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], port });
     }
 };
 
