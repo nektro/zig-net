@@ -89,7 +89,7 @@ pub const Address = extern union {
         );
         var s: Server = .{
             .address = undefined,
-            .stream = .{ .socket = @enumFromInt(sockfd) },
+            .stream = .{ .socket = @fromBackingInt(@intCast(sockfd)) },
         };
         errdefer s.stream.close();
 
@@ -123,7 +123,7 @@ pub const Address = extern union {
 
     pub fn tcpConnect(adr: Address) !Stream {
         const fd = try sys.socket(adr.any.family, sys.SOCK.STREAM | sys.SOCK.CLOEXEC, sys.IPPROTO.TCP);
-        const stream: Stream = .{ .socket = @enumFromInt(fd) };
+        const stream: Stream = .{ .socket = @fromBackingInt(@intCast(fd)) };
         errdefer stream.close();
         try sys.connect(fd, &adr.any, adr.size());
         return stream;
@@ -187,11 +187,11 @@ pub const Stream = struct {
 
     // Resource allocation may fail; resource deallocation must succeed.
     pub fn close(s: Stream) void {
-        sys.close(@intCast(@intFromEnum(s.socket))) catch if (builtin.mode == .Debug) unreachable;
+        sys.close(@intCast(@backingInt(s.socket))) catch if (builtin.mode == .debug) unreachable;
     }
 
     pub fn shutdown(s: Stream, how: sys.SHUT) !void {
-        return sys.shutdown(@intCast(@intFromEnum(s.socket)), how);
+        return sys.shutdown(@intCast(@backingInt(s.socket)), how);
     }
 
     pub fn sendfile(s: Stream, file: nfs.File, offset: off_t, count: ?usize) !void {
@@ -213,7 +213,7 @@ pub const Stream = struct {
         const count_actual = count orelse (try file.stat()).size;
         var total: u63 = 0;
         while (total < count_actual) {
-            const len = try sys.sendfile(@intCast(@intFromEnum(s.socket)), @intFromEnum(file.fd), &(offset + total), count_actual - total);
+            const len = try sys.sendfile(@intCast(@backingInt(s.socket)), @backingInt(file.fd), &(offset + total), count_actual - total);
             total += @intCast(len);
         }
     }
@@ -244,18 +244,18 @@ pub const Stream = struct {
 
     pub const ReadError = sys.errno.Error;
     pub fn read(s: Stream, buffer: []u8) ReadError!usize {
-        return sys.recv(@intFromEnum(s.socket), buffer, 0);
+        return sys.recv(@backingInt(s.socket), buffer, 0);
     }
     pub fn anyReadable(s: Stream) nio.AnyReadable {
         const S = struct {
             fn read(state: *allowzero anyopaque, buffer: []u8) anyerror!usize {
-                const reified: Stream = .{ .socket = @enumFromInt(@intFromPtr(state)) };
+                const reified: Stream = .{ .socket = @fromBackingInt(@intCast(@intFromPtr(state))) };
                 return reified.read(buffer);
             }
         };
         return .{
             .vtable = &.{ .read = S.read },
-            .state = @ptrFromInt(@intFromEnum(s.socket)),
+            .state = @ptrFromInt(@backingInt(s.socket)),
         };
     }
 
@@ -271,19 +271,19 @@ pub const Stream = struct {
 
     pub const WriteError = sys.errno.Error;
     pub fn write(s: Stream, bytes: []const u8) WriteError!usize {
-        return sys.send(@intFromEnum(s.socket), bytes, 0);
+        return sys.send(@backingInt(s.socket), bytes, 0);
     }
 
     pub fn anyWritable(s: Stream) nio.AnyWritable {
         const S = struct {
             fn write(state: *allowzero anyopaque, buffer: []u8) anyerror!usize {
-                const reified: Stream = .{ .socket = @enumFromInt(@intFromPtr(state)) };
+                const reified: Stream = .{ .socket = @fromBackingInt(@intCast(@intFromPtr(state))) };
                 return reified.write(buffer);
             }
         };
         return .{
             .vtable = &.{ .write = S.write },
-            .state = @ptrFromInt(@intFromEnum(s.socket)),
+            .state = @ptrFromInt(@backingInt(s.socket)),
         };
     }
 
@@ -292,7 +292,7 @@ pub const Stream = struct {
             .sec = timeout_us / time.us_per_s,
             .usec = timeout_us % time.us_per_s,
         };
-        return sys.setsockopt(@intCast(@intFromEnum(s.socket)), sys.SOL.SOCKET, sys.SO.SNDTIMEO, @ptrCast((&timeval)[0..1]));
+        return sys.setsockopt(@intCast(@backingInt(s.socket)), sys.SOL.SOCKET, sys.SO.SNDTIMEO, @ptrCast((&timeval)[0..1]));
     }
 
     pub fn setRecvTimeout(s: Stream, timeout_us: u31) !void {
@@ -300,7 +300,7 @@ pub const Stream = struct {
             .sec = timeout_us / time.us_per_s,
             .usec = timeout_us % time.us_per_s,
         };
-        return sys.setsockopt(@intCast(@intFromEnum(s.socket)), sys.SOL.SOCKET, sys.SO.RCVTIMEO, @ptrCast((&timeval)[0..1]));
+        return sys.setsockopt(@intCast(@backingInt(s.socket)), sys.SOL.SOCKET, sys.SO.RCVTIMEO, @ptrCast((&timeval)[0..1]));
     }
 };
 
@@ -316,10 +316,10 @@ pub const Server = struct {
     pub fn accept(s: *const Server) !Connection {
         var accepted_addr: Address = undefined;
         var addr_len: sys.socklen_t = @sizeOf(Address);
-        const fd = try sys.accept4(@intFromEnum(s.stream.socket), &accepted_addr.any, &addr_len, sys.SOCK.CLOEXEC);
+        const fd = try sys.accept4(@backingInt(s.stream.socket), &accepted_addr.any, &addr_len, sys.SOCK.CLOEXEC);
         return .{
             .address = accepted_addr,
-            .stream = .{ .socket = @enumFromInt(fd) },
+            .stream = .{ .socket = @fromBackingInt(@intCast(fd)) },
         };
     }
 
