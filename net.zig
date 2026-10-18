@@ -157,10 +157,11 @@ pub const Ip6Address = extern struct {
     pub const SockAddr = sys.struct_sockaddr_in6;
 
     pub fn init(addr: [8]u16, port: u16) Ip6Address {
+        const adr: *align(1) const @FieldType(sys.struct_in6_addr, "addr") = @ptrCast(&addr);
         return Ip6Address{
             .sa = .{
                 .port = std.mem.nativeToBig(u16, port),
-                .addr = .{ .addr = @bitCast(addr) },
+                .addr = .{ .addr = adr.* },
                 .flowinfo = 0,
                 .scope_id = 0,
             },
