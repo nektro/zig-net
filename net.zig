@@ -37,7 +37,7 @@ pub const Address = extern union {
             .ipv4 => |int| .initIp4(@bitCast(int), u.portFancy().?),
             .ipv6 => |int| .initIp6(@bitCast(int), u.portFancy().?),
             .name => |hostname| blk: {
-                const hostnamez = try allocator.dupeZ(u8, hostname);
+                const hostnamez = try allocator.dupeSentinel(u8, hostname, 0);
                 defer allocator.free(hostnamez);
                 const portz = try nio.fmt.allocPrintZ(allocator, "{d}", .{u.portFancy().?});
                 defer allocator.free(portz);
