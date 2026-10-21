@@ -4,17 +4,9 @@ const nio = @import("nio");
 const nfs = @import("nfs");
 const time = @import("time");
 const url = @import("url");
-const sys_linux = @import("sys-linux");
+const sys = @import("sys").impl;
 
 const os = builtin.target.os.tag;
-
-const sys = switch (os) {
-    .linux => sys_linux,
-    .freebsd => @import("sys-freebsd"),
-    .netbsd => @import("sys-netbsd"),
-    .openbsd => @import("sys-openbsd"),
-    else => @compileError("TODO"),
-};
 
 pub const off_t = sys.off_t;
 
